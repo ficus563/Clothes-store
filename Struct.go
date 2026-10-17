@@ -1,53 +1,55 @@
 package	main
 import {
 	"github.com/google/uuid"
+	"time"
 }
 
 //Структура товара
 type Product struct {
-	ID int
+	ID uuid.UUID
 	Name, Type, Gender, Color, Description, Brand, Season string
-	Size float64
+	Size int
 	Price float64
 }
 
 //Структура фото
 type Photo struct {
-	ID, ProductID int
+	ID uuid.UUID
+	ProductID int
 	Filename string
 }
 
 //Структура роль пользователя
 type Role struct {
-	ID int
+	ID uuid.UUID
 	Name string
 }
 
 //Структура пользователь
 type User struct {
-	ID int
+	ID uuid.UUID
 	Name, Email, Phone, Role string
-	RegistrationDate string // выбрать корректный тип данных
+	RegistrationDate time.Time // выбрать корректный тип данных
 }
 
 //Структура корзина
 type Cart struct {
-	ID int 
-	UserID, ProductID int
-	Count float64
+	ID uuid.UUID
+	UserID, ProductID, Count int
+
 }
 
 //Структура заказ
 type Order struct {
-	ID int
+	ID uuid.UUID
 	UserID int
-	DateTime string
+	DateTime time.Time
 	Status string
 }
 
 //Cтруктура элементы заказа
 type  OrderItem struct {
-	ID int
+	ID uuid.UUID
 	OrderID, ProductID int
 	Price float64
 }

@@ -1,4 +1,4 @@
-package	main
+package	models
 import {
 	"github.com/google/uuid"
 	"time"
@@ -15,7 +15,7 @@ type Product struct {
 //Структура фото
 type Photo struct {
 	ID uuid.UUID
-	ProductID int
+	ProductID uuid.UUID
 	Filename string
 }
 
@@ -28,28 +28,41 @@ type Role struct {
 //Структура пользователь
 type User struct {
 	ID uuid.UUID
-	Name, Email, Phone, Role string
-	RegistrationDate time.Time // выбрать корректный тип данных
+	Name, Email, Phone string
+	Role uuid.UUID
+	RegistrationDate time.Time
 }
 
 //Структура корзина
 type Cart struct {
 	ID uuid.UUID
-	UserID, ProductID, Count int
+	UserID, ProductID uuid.UUID
+	Count int
 
 }
+
+//Статусы заказов
+type OrderStatus string 
+const (
+	StatusAccepted OrderStatus = "Принят"
+	StatusInProgress OrderStatus = "В работе"
+	StatusAssembled OrderStatus = "Собран"
+	StatusReady OrderStatus = "Готов к выдаче"
+	StatusCancelled OrderStatus = "Отменён"
+)
+
 
 //Структура заказ
 type Order struct {
 	ID uuid.UUID
-	UserID int
+	UserID uuid.UUID
 	DateTime time.Time
-	Status string
+	Status OrderStatus
 }
 
 //Cтруктура элементы заказа
 type  OrderItem struct {
 	ID uuid.UUID
-	OrderID, ProductID int
+	OrderID, ProductID uuid.UUID
 	Price float64
 }

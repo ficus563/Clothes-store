@@ -1,68 +1,78 @@
-package	models
-import {
-	"github.com/google/uuid"
+package models
+
+import (
 	"time"
-}
+	"github.com/google/uuid"
+)
 
-//Структура товара
+// Структура товара
 type Product struct {
-	ID uuid.UUID
-	Name, Type, Gender, Color, Description, Brand, Season string
-	Size int
-	Price float64
+	ID          uuid.UUID
+	Name        string
+	Type        string
+	Gender      string
+	Color       string
+	Description string
+	Brand       string
+	Season      string
+	Size        int
+	Price       float64
 }
 
-//Структура фото
+// Структура фото
 type Photo struct {
-	ID uuid.UUID
+	ID        uuid.UUID
 	ProductID uuid.UUID
-	Filename string
+	Filename  string
 }
 
-//Структура роль пользователя
+// Структура роль пользователя
 type Role struct {
-	ID uuid.UUID
+	ID   uuid.UUID
 	Name string
 }
 
-//Структура пользователь
+// Структура пользователь
 type User struct {
-	ID uuid.UUID
-	Name, Email, Phone string
-	Role uuid.UUID
+	ID               uuid.UUID
+	Name             string
+	Email            string
+	Phone            string
+	RoleID           uuid.UUID // Ссылка на роль
 	RegistrationDate time.Time
 }
 
-//Структура корзина
+// Структура корзина
 type Cart struct {
-	ID uuid.UUID
-	UserID, ProductID uuid.UUID
-	Count int
-
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	ProductID uuid.UUID
+	Count     int
 }
 
-//Статусы заказов
-type OrderStatus string 
+// Статусы заказов
+type OrderStatus string
+
 const (
-	StatusAccepted OrderStatus = "Принят"
+	StatusAccepted   OrderStatus = "Принят"
 	StatusInProgress OrderStatus = "В работе"
-	StatusAssembled OrderStatus = "Собран"
-	StatusReady OrderStatus = "Готов к выдаче"
-	StatusCancelled OrderStatus = "Отменён"
+	StatusAssembled  OrderStatus = "Собран"
+	StatusReady      OrderStatus = "Готов к выдаче"
+	StatusCancelled  OrderStatus = "Отменён"
 )
 
-
-//Структура заказ
+// Структура заказ
 type Order struct {
-	ID uuid.UUID
-	UserID uuid.UUID
+	ID       uuid.UUID
+	UserID   uuid.UUID
 	DateTime time.Time
-	Status OrderStatus
+	Status   OrderStatus
 }
 
-//Cтруктура элементы заказа
-type  OrderItem struct {
-	ID uuid.UUID
-	OrderID, ProductID uuid.UUID
-	Price float64
+// Структура элементы заказа
+type OrderItem struct {
+	ID        uuid.UUID
+	OrderID   uuid.UUID
+	ProductID uuid.UUID
+	Price     float64
 }

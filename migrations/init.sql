@@ -1,7 +1,8 @@
 PRAGMA foreign_keys = ON;
---Cоздание таблиц и связей между ними
---Таблица "Товар"
-CREATE TABLE Product IF NOT EXISTS (
+
+-- Создание таблиц и связей между ними
+-- Таблица "Товар"
+CREATE TABLE IF NOT EXISTS Product (
     ID TEXT PRIMARY KEY,
     ProductName TEXT NOT NULL,
     ProductType TEXT,
@@ -12,51 +13,58 @@ CREATE TABLE Product IF NOT EXISTS (
     Season TEXT,
     ProductSize INT, 
     Price DECIMAL (10,2) NOT NULL
-)
+);
 
---Таблица "Фото"
-CREATE TABLE Photo IF NOT EXISTS (
+-- Таблица "Фото"
+CREATE TABLE IF NOT EXISTS Photo (
     ID TEXT PRIMARY KEY,
-    ProductID TEXT FOREIGN KEY (ProductID) REFERENCES Product(ID) ON DELETE CASCADE,
-    Filenames TEXT NOT NULL 
-)
+    ProductID TEXT,
+    Filename TEXT NOT NULL,
+    FOREIGN KEY (ProductID) REFERENCES Product(ID) ON DELETE CASCADE
+);
 
---Таблица "Роли"
-CREATE TABLE Role IF NOT EXISTS (
+-- Таблица "Роли"
+CREATE TABLE IF NOT EXISTS Role (
     ID TEXT PRIMARY KEY,
-    Names TEXT
-)
+    Name TEXT NOT NULL
+);
 
---Таблица "Пользователь"
-CREATE TABLE User IF NOT EXISTS (
-    ID TEXT PRIMARY KEY
+-- Таблица "Пользователь"
+CREATE TABLE IF NOT EXISTS "User" (
+    ID TEXT PRIMARY KEY,
     NameUser TEXT,
     Email TEXT,
     Phone TEXT,
-    UserRole TEXT FOREIGN KEY (UserRole) REFERENCES Role(ID),
-    RegistrationDate DATE 
-)
+    UserRole TEXT,
+    RegistrationDate DATE,
+    FOREIGN KEY (UserRole) REFERENCES Role(ID)
+);
 
---Таблица "Корзина"
-CREATE TABLE Cart IF NOT EXISTS (
+-- Таблица "Корзина"
+CREATE TABLE IF NOT EXISTS Cart (
     ID TEXT PRIMARY KEY,
-    UserID TEXT FOREIGN KEY (UserID) REFERENCES User(ID),
-    ProductID TEXT FOREIGN KEY (ProductID) REFERENCES Product(ID),
-    Count INT
-)
+    UserID TEXT,
+    ProductID TEXT,
+    Count INT,
+    FOREIGN KEY (UserID) REFERENCES "User"(ID),
+    FOREIGN KEY (ProductID) REFERENCES Product(ID)
+);
 
---Таблица Заказ
-CREATE TABLE Order IF NOT EXISTS (
+-- Таблица Заказ
+CREATE TABLE IF NOT EXISTS "Order" (
     ID TEXT PRIMARY KEY,
-    UserID TEXT FOREIGN KEY (UserID) REFERENCES User(ID),
+    UserID TEXT,
     DateTimes DATE,
-    Status TEXT
-)
+    Status TEXT,
+    FOREIGN KEY (UserID) REFERENCES "User"(ID)
+);
 
---Таблица "Элементы заказа"
-CREATE TABLE OrderItem IF NOT EXISTS (
+-- Таблица "Элементы заказа"
+CREATE TABLE IF NOT EXISTS OrderItem (
     ID TEXT PRIMARY KEY,
-    OrderID TEXT FOREIGN KEY (OrderID) REFERENCES Order(ID),
-    ProductID TEXT FOREIGN KEY (ProductID) REFERENCES Product(ID),
-)
-
+    OrderID TEXT,
+    ProductID TEXT,
+    Price DECIMAL(10,2),
+    FOREIGN KEY (OrderID) REFERENCES "Order"(ID),
+    FOREIGN KEY (ProductID) REFERENCES Product(ID)
+);

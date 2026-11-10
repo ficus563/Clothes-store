@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Магазин Одежды - Тест</title>
+</head>
+<body>
+    <h1>Управление магазином</h1>
+
+    <h2>Добавить товар</h2>
+    <input type="text" id="pName" placeholder="Название (Футболка)">
+    <input type="text" id="pType" placeholder="Тип (Верх)">
+    <input type="number" id="pPrice" placeholder="Цена (1500)">
+    <button onclick="addProduct()">Добавить</button>
+
+    <h2>Список товаров</h2>
+    <button onclick="loadProducts()">Обновить список</button>
+    <ul id="productList"></ul>
+
+    <script>
+        // функция добавления товара
+        async function addProduct() {
+            const name = document.getElementById('pName').value;
+            const type = document.getElementById('pType').value;
+            const price = parseFloat(document.getElementById('pPrice').value);
+
+            const response = await fetch('/product', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, type: type, price: price })
+            });
+            if(response.ok) {
+                alert('Товар добавлен!');
+                loadProducts();
+            }
+        }
+
+        // функция загрузки списка
+        async function loadProducts() {
+            const response = await fetch('/product');
+            const products = await response.json();
+            const list = document.getElementById('productList');
+            list.innerHTML = '';
+            
+            if(products) {
+                products.forEach(p => {
+                    // создаем элемент списка для каждого товара
+                    const li = document.createElement('li');
+                    li.innerText = `${p.name} | Тип: ${p.type} | Цена: ${p.price} руб.`;
+                    list.appendChild(li);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

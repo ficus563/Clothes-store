@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/joho/godotenv"
 	_ "modernc.org/sqlite"
 
 	"clothes-shop/internal/handlers"
@@ -15,71 +14,73 @@ import (
 )
 
 func main() {
-	// настраиваем логи
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
+	// логи
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 
-	// загружаем переменные из .env
-	if err := godotenv.Load(); err != nil {
-		slog.Warn("Файл .env не найден, используем стандартные настройки")
-	}
-
-	// получаем порт и путь к базе
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-	dbPath := os.Getenv("DB_PATH")
-	if dbPath == "" {
-		dbPath = "./clothes_shop.db"
-	}
-
-	// подключаем базу
-	db, err := sql.Open("sqlite", dbPath)
+	// база
+	db, err := sql.Open("sqlite", "./clothes_shop.db")
 	if err != nil {
-		slog.Error("Ошибка подключения к БД", "error", err)
+		slog.Error("Ошибка БД", "error", err)
 		os.Exit(1)
 	}
 	defer db.Close()
 
-	// читаем sql скрипт и создаем таблицы
-	sqlBytes, err := os.ReadFile("migrations/ScriptBd.sql")
-	if err != nil {
-		slog.Error("Ошибка чтения SQL-скрипта", "error", err)
-		os.Exit(1)
-	}
-	_, err = db.Exec(string(sqlBytes))
-	if err != nil {
-		slog.Error("Ошибка создания таблиц", "error", err)
-		os.Exit(1)
-	}
+	// таблицы
+	sqlBytes, _ := os.ReadFile("migrations/ScriptBd.sql")
+	db.Exec(string(sqlBytes))
 
-	// инициализируем репозиторий и хендлеры
+	// слои
 	repo := repository.NewRepository(db)
 	h := handlers.NewHandler(repo)
 
-	// настраиваем роутер
+	// роутер
 	r := chi.NewRouter()
 
-	// маршруты для товаров
-	r.Post("/product", h.CreateProduct)
+	// --- API МАРШРУТЫ ---
+	r.Post("/register", h.Register)
 	r.Get("/product", h.GetProducts)
-	r.Delete("/product/{id}", h.DeleteProduct)
-
-	// маршруты для ролей, корзины и заказов
-	r.Post("/role", h.CreateRole)
-	r.Post("/cart", h.CreateCart)
-	r.Post("/order", h.CreateOrder)
+	r.Get("/product/{id}", h.GetProductByID)
+	r.Get("/cart/{user_id}", h.GetCart)
+	r.Post("/photo", h.UploadPhoto)
 	r.Get("/order", h.GetOrders)
 
-	// раздаем html файл
+	// раздача картинок
+	fs := http.FileServer(http.Dir("./uploads"))
+	r.Handle("/uploads/*", http.StripPrefix("/uploads/", fs))
+
+	// группы с ролями
+	r.Group(func(r chi.Router) {
+		r.Use(handlers.RoleMiddleware("Администратор"))
+		r.Post("/product", h.CreateProduct)
+		r.Put("/product/{id}", h.UpdateProduct)
+		r.Delete("/product/{id}", h.DeleteProduct)
+		r.Post("/role", h.CreateRole)
+	})
+
+	r.Group(func(r chi.Router) {
+		r.Use(handlers.RoleMiddleware("Клиент"))
+		r.Post("/cart", h.CreateCart)
+		r.Delete("/cart/{id}", h.DeleteCart)
+		r.Post("/order", h.CreateOrder)
+	})
+
+	// --- ГЛАВНАЯ СТРАНИЦА (HTML) ---
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		// проверяем, есть ли файл в корне
+		if _, err := os.Stat("index.html"); os.IsNotExist(err) {
+			// если файла нет, выводим текст
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.Write([]byte("<h1>Сервер работает!</h1><p>Но файл index.html не найден в корне проекта.</p>"))
+			return
+		}
+		// если файл есть, отдаем его
 		http.ServeFile(w, r, "index.html")
 	})
 
-	// запускаем сервер
-	slog.Info("Сервер запущен", "port", port)
-	if err := http.ListenAndServe(":"+port, r); err != nil {
-		slog.Error("Ошибка сервера", "error", err)
+	// запуск
+	slog.Info("Сервер запущен на http://localhost:8080")
+	err = http.ListenAndServe(":8080", r)
+	if err != nil {
+		slog.Error("Сервер упал", "error", err)
 	}
 }
